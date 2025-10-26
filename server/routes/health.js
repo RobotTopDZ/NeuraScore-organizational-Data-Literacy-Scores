@@ -14,9 +14,7 @@ const logger = require('../utils/logger');
  */
 router.get('/', async (req, res) => {
   try {
-    // Check database connection
-    await sequelize.authenticate();
-    
+    // Basic health check without database dependency
     const healthData = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -25,10 +23,18 @@ router.get('/', async (req, res) => {
       environment: process.env.NODE_ENV || 'development',
       version: '1.0.0',
       services: {
-        database: 'connected',
         api: 'running'
       }
     };
+
+    // Try database connection but don't fail if it's not available
+    try {
+      await sequelize.authenticate();
+      healthData.services.database = 'connected';
+    } catch (dbError) {
+      healthData.services.database = 'disconnected';
+      logger.warn('Database not available for health check:', dbError.message);
+    }
 
     res.json({
       success: true,
@@ -38,13 +44,12 @@ router.get('/', async (req, res) => {
   } catch (error) {
     logger.error('Health check failed:', error);
     
-    res.status(503).json({
+    res.status(500).json({
       success: false,
-      error: 'Service unavailable',
+      error: 'Health check error',
       timestamp: new Date().toISOString(),
       services: {
-        database: 'disconnected',
-        api: 'running'
+        api: 'error'
       }
     });
   }

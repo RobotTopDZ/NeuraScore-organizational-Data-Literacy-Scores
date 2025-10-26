@@ -50,6 +50,14 @@ const sequelize = new Sequelize(dbConfig);
  */
 async function initializeDatabase() {
   try {
+    // Ensure data directory exists for SQLite
+    const fs = require('fs');
+    const dataDir = path.dirname(dbConfig.storage || path.join(__dirname, '../../data/neurascore.db'));
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+      logger.info(`Created data directory: ${dataDir}`);
+    }
+
     // Test connection
     await sequelize.authenticate();
     logger.info('Database connection established successfully');
@@ -64,7 +72,7 @@ async function initializeDatabase() {
     defineAssociations({ UserScore, TeamMetrics, Insight, ProcessingStatus });
 
     // Sync database (create tables if they don't exist)
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force: false }); // Don't force recreate in production
     logger.info('Database synchronized successfully');
 
     // Initialize default data

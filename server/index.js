@@ -207,15 +207,19 @@ app.use(errorHandler);
 // Initialize database and start server
 async function startServer() {
   try {
-    // Initialize database
-    await initializeDatabase();
-    logger.info('Database initialized successfully');
+    // Try to initialize database, but don't fail if it's not available
+    try {
+      await initializeDatabase();
+      logger.info('Database initialized successfully');
+    } catch (dbError) {
+      logger.warn('Database initialization failed, starting server without database:', dbError.message);
+    }
 
-    // Start server
+    // Start server regardless of database status
     app.listen(PORT, '0.0.0.0', () => {
       logger.info(`NeuraScore server running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      logger.info(`API Documentation: http://localhost:${PORT}/`);
+      logger.info(`Health check: http://localhost:${PORT}/api/health`);
     });
 
   } catch (error) {
