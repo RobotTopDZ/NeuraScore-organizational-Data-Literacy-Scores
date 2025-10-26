@@ -31,8 +31,10 @@ RUN cd server && npm install --omit=dev
 
 # Copy built frontend
 COPY --from=frontend-builder /app/frontend/.next ./frontend/.next
-COPY --from=frontend-builder /app/frontend/public ./frontend/public
 COPY --from=frontend-builder /app/frontend/package.json ./frontend/
+# Copy public directory (create empty one if it doesn't exist)
+RUN mkdir -p ./frontend/public
+COPY --from=frontend-builder /app/frontend/public/* ./frontend/public/ || true
 
 # Copy Python services
 COPY --from=python-services /app/python-services ./python-services
