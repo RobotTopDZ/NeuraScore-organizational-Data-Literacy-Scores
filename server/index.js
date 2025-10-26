@@ -29,16 +29,25 @@ const healthRoutes = require('./routes/health');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Security middleware
+// Add startup logging
+console.log('Starting NeuraScore server...');
+console.log('Environment:', process.env.NODE_ENV || 'development');
+console.log('Port:', PORT);
+
+// Simple health check before any middleware
+app.get('/api/health', (req, res) => {
+  console.log('Health check requested');
+  res.json({
+    success: true,
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    port: PORT
+  });
+});
+
+// Security middleware - simplified for Railway
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-    },
-  },
+  contentSecurityPolicy: false, // Disable CSP for now to avoid issues
 }));
 
 // Rate limiting
@@ -96,7 +105,7 @@ app.use('/api/insights', insightsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/processing', processingRoutes);
-app.use('/api/health', healthRoutes);
+// Health route is defined above before middleware
 
 // API info endpoint
 app.get('/api', (req, res) => {
@@ -216,10 +225,18 @@ async function startServer() {
     }
 
     // Start server regardless of database status
-    app.listen(PORT, '0.0.0.0', () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`✅ NeuraScore server running on port ${PORT}`);
+      console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`✅ Health check: http://0.0.0.0:${PORT}/api/health`);
       logger.info(`NeuraScore server running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      logger.info(`Health check: http://localhost:${PORT}/api/health`);
+      logger.info(`Health check: http://0.0.0.0:${PORT}/api/health`);
+    });
+
+    server.on('error', (error) => {
+      console.error('❌ Server error:', error);
+      logger.error('Server error:', error);
     });
 
   } catch (error) {
