@@ -1,5 +1,5 @@
 # Multi-stage build for NeuraScore platform
-FROM node:18-alpine AS frontend-builder
+FROM node:20-alpine AS frontend-builder
 
 # Build frontend
 WORKDIR /app/frontend
@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY python-services/ ./
 
 # Final production stage
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 
 # Install Python for ML services
 RUN apk add --no-cache python3 py3-pip
@@ -32,9 +32,8 @@ RUN cd server && npm install --omit=dev
 # Copy built frontend
 COPY --from=frontend-builder /app/frontend/.next ./frontend/.next
 COPY --from=frontend-builder /app/frontend/package.json ./frontend/
-# Copy public directory (create empty one if it doesn't exist)
+# Create public directory and copy if exists
 RUN mkdir -p ./frontend/public
-COPY --from=frontend-builder /app/frontend/public/* ./frontend/public/ || true
 
 # Copy Python services
 COPY --from=python-services /app/python-services ./python-services
