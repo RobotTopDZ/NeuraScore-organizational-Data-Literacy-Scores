@@ -26,7 +26,8 @@ COPY server/ ./server/
 COPY python-services/ ./python-services/
 COPY data/ ./data/
 
-# Create public directory
+# Ensure frontend build artifacts are available
+RUN ls -la ./frontend/.next/ || echo "Next.js build directory not found"
 RUN mkdir -p ./frontend/public
 
 # Expose port

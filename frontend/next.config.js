@@ -2,9 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  experimental: {
-    appDir: true,
-  },
+  output: 'standalone',
+  distDir: '.next',
+  trailingSlash: true,
   async rewrites() {
     return [
       {

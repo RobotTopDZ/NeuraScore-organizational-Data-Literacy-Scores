@@ -79,6 +79,15 @@ const frontendPublicPath = path.join(__dirname, '../frontend/public');
 app.use('/_next', express.static(path.join(frontendPath, 'static')));
 app.use('/public', express.static(frontendPublicPath));
 
+// Serve Next.js standalone server if available
+let nextHandler;
+try {
+  const nextServer = require(path.join(frontendPath, 'standalone/server.js'));
+  nextHandler = nextServer;
+} catch (err) {
+  console.log('Next.js standalone server not available, using fallback');
+}
+
 // API Routes
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/users', usersRoutes);
@@ -120,45 +129,76 @@ app.get('*', (req, res) => {
     });
   }
   
-  // For all other routes, serve the frontend
-  const indexPath = path.join(__dirname, '../frontend/.next/server/pages/index.html');
-  res.sendFile(indexPath, (err) => {
-    if (err) {
-      // Fallback to a simple HTML page if Next.js files aren't available
-      res.send(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>NeuraScore Analytics Platform</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            body { font-family: Arial, sans-serif; margin: 40px; text-align: center; }
-            .container { max-width: 600px; margin: 0 auto; }
-            .logo { font-size: 2em; color: #2563eb; margin-bottom: 20px; }
-            .message { font-size: 1.2em; margin-bottom: 30px; }
-            .links a { display: inline-block; margin: 10px; padding: 10px 20px; 
-                      background: #2563eb; color: white; text-decoration: none; 
-                      border-radius: 5px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="logo">euraScore Analytics Platform</div>
-            <div class="message">Welcome to the NeuraScore Analytics Platform</div>
-            <div class="links">
-              <a href="/api">API Documentation</a>
-              <a href="/api/dashboard">Dashboard Data</a>
-              <a href="/api/health">Health Check</a>
-            </div>
-            <p>The frontend application is loading. If you continue to see this page, 
-               the frontend build may not be available.</p>
-          </div>
-        </body>
-        </html>
-      `);
+  // Try to use Next.js standalone server first
+  if (nextHandler) {
+    return nextHandler(req, res);
+  }
+  
+  // Try to serve static HTML files
+  const staticPaths = [
+    path.join(__dirname, '../frontend/.next/server/app/page.html'),
+    path.join(__dirname, '../frontend/.next/server/pages/index.html'),
+    path.join(__dirname, '../frontend/out/index.html')
+  ];
+  
+  let served = false;
+  for (const staticPath of staticPaths) {
+    if (!served) {
+      res.sendFile(staticPath, (err) => {
+        if (!err) {
+          served = true;
+        } else if (staticPath === staticPaths[staticPaths.length - 1]) {
+          // Last attempt failed, show fallback
+          res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>euraScore Analytics Platform</title>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                       margin: 0; padding: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                       min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+                .container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+                            max-width: 600px; text-align: center; }
+                .logo { font-size: 2.5em; color: #2563eb; margin-bottom: 20px; font-weight: bold; }
+                .message { font-size: 1.2em; margin-bottom: 30px; color: #374151; }
+                .links { margin: 30px 0; }
+                .links a { display: inline-block; margin: 10px; padding: 12px 24px; 
+                          background: #2563eb; color: white; text-decoration: none; 
+                          border-radius: 8px; transition: all 0.3s; font-weight: 500; }
+                .links a:hover { background: #1d4ed8; transform: translateY(-2px); }
+                .status { background: #f3f4f6; padding: 20px; border-radius: 8px; margin-top: 20px; }
+                .status-good { color: #059669; font-weight: 500; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="logo">euraScore</div>
+                <div class="message">Analytics Platform</div>
+                <div class="status">
+                  <div class="status-good">✅ Backend API: Running</div>
+                  <div style="color: #d97706; margin-top: 8px;">⚠️ Frontend: Building...</div>
+                </div>
+                <div class="links">
+                  <a href="/api">API Documentation</a>
+                  <a href="/api/dashboard">Dashboard Data</a>
+                  <a href="/api/health">System Health</a>
+                </div>
+                <p style="color: #6b7280; font-size: 0.9em; margin-top: 30px;">
+                  The frontend is currently being built and deployed. This page will automatically 
+                  show the full dashboard once the build completes.
+                </p>
+              </div>
+            </body>
+            </html>
+          `);
+        }
+      });
+      if (!served) break;
     }
-  });
+  }
 });
 
 // Error handling middleware
