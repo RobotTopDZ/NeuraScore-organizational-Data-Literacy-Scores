@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuraScore Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #1f2937;
+            color: white;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .success {
+            background-color: #065f46;
+            border-color: #10b981;
+        }
+        .error {
+            background-color: #7f1d1d;
+            border-color: #ef4444;
+        }
+        .loading {
+            background-color: #1e40af;
+            border-color: #3b82f6;
+        }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        .link {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 NeuraScore Platform Connection Test</h1>
+    
+    <div class="status loading">
+        <h3>Testing Connections...</h3>
+        <p>Please wait while we check all services...</p>
+    </div>
+
+    <div id="results"></div>
+
+    <h2>📋 Direct Access Links</h2>
+    <p>If the tests above show success, you can access your NeuraScore platform directly:</p>
+    
+    <div style="margin: 20px 0;">
+        <a href="http://localhost:3001" class="link" target="_blank">
+            🌐 NeuraScore Dashboard (Frontend)
+        </a><br><br>
+        
+        <a href="http://localhost:3000" class="link" target="_blank">
+            🔧 Backend API
+        </a><br><br>
+        
+        <a href="http://localhost:8001" class="link" target="_blank">
+            🐍 Python Services
+        </a>
+    </div>
+
+    <h2>🔧 Manual Test</h2>
+    <button onclick="testFrontend()">Test Frontend</button>
+    <button onclick="testBackend()">Test Backend API</button>
+    <button onclick="testPython()">Test Python Services</button>
+
+    <script>
+        async function testServices() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            const services = [
+                { name: 'Frontend', url: 'http://localhost:3001', type: 'html' },
+                { name: 'Backend API', url: 'http://localhost:3000/api/health', type: 'json' },
+                { name: 'Python Services', url: 'http://localhost:8001', type: 'json' }
+            ];
+
+            for (const service of services) {
+                try {
+                    const response = await fetch(service.url);
+                    if (response.ok) {
+                        resultsDiv.innerHTML += `
+                            <div class="status success">
+                                <h3>✅ ${service.name} - Working</h3>
+                                <p>Status: ${response.status} ${response.statusText}</p>
+                                <p>URL: <a href="${service.url}" class="link" target="_blank">${service.url}</a></p>
+                            </div>
+                        `;
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    resultsDiv.innerHTML += `
+                        <div class="status error">
+                            <h3>❌ ${service.name} - Failed</h3>
+                            <p>Error: ${error.message}</p>
+                            <p>URL: ${service.url}</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function testFrontend() {
+            window.open('http://localhost:3001', '_blank');
+        }
+
+        function testBackend() {
+            window.open('http://localhost:3000', '_blank');
+        }
+
+        function testPython() {
+            window.open('http://localhost:8001', '_blank');
+        }
+
+        // Auto-test on page load
+        window.onload = testServices;
+    </script>
+</body>
+</html>
