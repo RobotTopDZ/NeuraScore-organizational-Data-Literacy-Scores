@@ -1,5 +1,7 @@
 # euraScore Analytics Platform
 
+🚀 **[Live Demo](https://neurascore-organizational-data-literacy-scores-production.up.railway.app/)** - Experience the platform in action
+
 ## Executive Summary
 
 NeuraScore is an enterprise-grade data literacy assessment platform that leverages machine learning and natural language processing to evaluate organizational data maturity. The platform analyzes user behavior patterns, generates predictive insights, and provides actionable recommendations for improving data-driven decision making across teams and departments.
@@ -23,6 +25,24 @@ NeuraScore is an enterprise-grade data literacy assessment platform that leverag
 - **PDF Export**: Professional reports with insights, charts, and executive summaries
 - **CSV Data Export**: Raw data extraction for further analysis
 - **Automated Insights**: AI-generated recommendations and action items
+
+## Platform Screenshots
+
+### Dashboard Overview
+![Dashboard](screenshots/dashboard.PNG)
+*Main analytics dashboard showing key performance metrics and data literacy scores*
+
+### Team Analytics
+![Teams](screenshots/teams.PNG)
+*Team-level insights and collaboration metrics for organizational assessment*
+
+### Comprehensive Reports
+![Reports](screenshots/reports.PNG)
+*Advanced reporting interface with customizable analytics and export options*
+
+### PDF Export Capability
+![PDF Report](screenshots/pdf%20report.PNG)
+*Professional PDF reports with executive summaries and actionable insights*
 
 ## Technical Architecture
 
