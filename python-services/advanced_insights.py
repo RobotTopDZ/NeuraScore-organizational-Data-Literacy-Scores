@@ -9,9 +9,6 @@ from typing import Dict, List, Any, Optional
 import logging
 from datetime import datetime, timedelta
 import json
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestRegressor
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -21,10 +18,8 @@ class AdvancedInsightsEngine:
     """Advanced insights using ML models and NLP analysis"""
     
     def __init__(self):
-        self.scaler = StandardScaler()
+        # Simplified analytics without sklearn
         self.user_clusters = None
-        self.performance_model = None
-        self.trend_model = None
         
     def analyze_user_patterns(self, user_data: pd.DataFrame) -> Dict[str, Any]:
         """Analyze user behavior patterns using ML clustering"""

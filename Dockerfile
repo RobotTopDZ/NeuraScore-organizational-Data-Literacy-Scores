@@ -13,7 +13,7 @@ RUN cd server && npm install --omit=dev
 
 # Copy and install Python dependencies
 COPY python-services/requirements.txt ./python-services/
-RUN cd python-services && pip install --no-cache-dir -r requirements.txt
+RUN cd python-services && pip install --no-cache-dir --break-system-packages -r requirements.txt
 
 # Copy and build frontend
 COPY frontend/package*.json ./frontend/

@@ -9,20 +9,10 @@ from typing import Dict, List, Any, Optional
 import logging
 import re
 from collections import Counter
-import textstat
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize, sent_tokenize
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-
-# Download required NLTK data
-try:
-    nltk.data.find('tokenizers/punkt')
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('punkt')
-    nltk.download('stopwords')
+# Simplified NLP without heavy dependencies
+import re
+from collections import Counter
+# Basic text processing without external dependencies
 
 logger = logging.getLogger(__name__)
 
@@ -30,12 +20,8 @@ class NLPAnalyzer:
     """Analyzes text content for quality and diversity metrics"""
     
     def __init__(self):
-        self.stop_words = set(stopwords.words('english'))
-        self.vectorizer = TfidfVectorizer(
-            max_features=1000,
-            stop_words='english',
-            ngram_range=(1, 2)
-        )
+        # Basic English stop words
+        self.stop_words = set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them'])
         
     async def analyze_text(self, text: str) -> Dict[str, Any]:
         """Analyze a single text for quality metrics"""
@@ -43,39 +29,45 @@ class NLPAnalyzer:
             if not text or not isinstance(text, str):
                 return self._empty_analysis()
             
-            # Basic text statistics
-            word_count = len(word_tokenize(text))
-            sentence_count = len(sent_tokenize(text))
+            # Basic text statistics using simple tokenization
+            words = re.findall(r'\b\w+\b', text.lower())
+            sentences = re.split(r'[.!?]+', text)
+            word_count = len(words)
+            sentence_count = len([s for s in sentences if s.strip()])
             char_count = len(text)
             
-            # Readability metrics
+            # Simple readability metrics
+            avg_words_per_sentence = word_count / sentence_count if sentence_count > 0 else 0
+            avg_chars_per_word = sum(len(word) for word in words) / word_count if word_count > 0 else 0
+            
             readability = {
-                'flesch_reading_ease': textstat.flesch_reading_ease(text),
-                'flesch_kincaid_grade': textstat.flesch_kincaid_grade(text),
-                'automated_readability_index': textstat.automated_readability_index(text),
-                'coleman_liau_index': textstat.coleman_liau_index(text)
+                'avg_words_per_sentence': avg_words_per_sentence,
+                'avg_chars_per_word': avg_chars_per_word,
+                'reading_ease_estimate': max(0, 100 - avg_words_per_sentence * 2 - avg_chars_per_word * 5)
             }
             
             # Vocabulary richness
-            words = [word.lower() for word in word_tokenize(text) 
-                    if word.isalpha() and word.lower() not in self.stop_words]
+            filtered_words = [word for word in words if word.isalpha() and word not in self.stop_words]
             
-            vocabulary_richness = len(set(words)) / len(words) if words else 0
+            vocabulary_richness = len(set(filtered_words)) / len(filtered_words) if filtered_words else 0
             
-            # Semantic complexity
-            semantic_score = self._calculate_semantic_complexity(text)
+            # Simple semantic complexity based on word length and variety
+            semantic_score = vocabulary_richness * avg_chars_per_word / 10
+            
+            # Overall quality score
+            quality_score = (vocabulary_richness * 40 + 
+                           min(readability['reading_ease_estimate'], 100) * 0.3 + 
+                           semantic_score * 30) / 100
             
             return {
                 'word_count': word_count,
                 'sentence_count': sentence_count,
                 'char_count': char_count,
-                'avg_words_per_sentence': word_count / sentence_count if sentence_count > 0 else 0,
+                'avg_words_per_sentence': avg_words_per_sentence,
                 'vocabulary_richness': vocabulary_richness,
                 'readability': readability,
                 'semantic_complexity': semantic_score,
-                'quality_score': self._calculate_quality_score(
-                    word_count, vocabulary_richness, readability, semantic_score
-                )
+                'quality_score': quality_score
             }
             
         except Exception as e:
