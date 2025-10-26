@@ -3,8 +3,7 @@ NLP Analyzer for NeuraScore
 Analyzes text quality, query diversity, and documentation metrics
 """
 
-import pandas as pd
-import numpy as np
+# Removed pandas and numpy for lightweight deployment
 from typing import Dict, List, Any, Optional
 import logging
 import re
